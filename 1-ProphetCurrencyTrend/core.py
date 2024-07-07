@@ -35,6 +35,7 @@ def main():
     # Display the prediction graph
     st.subheader("Prediction Graph")
     periods = st.slider("Select prediction periods (days):", min_value=30, max_value=365, value=90)
+    st.subheader(periods)
     plot1 = prophet_predict_graph(df, periods)
     st.plotly_chart(plot1)
 
@@ -52,8 +53,8 @@ def load_and_process_data(pair, years_period=10):
 
 def prophet_predict_graph(df, periods):
 
-    m = Prophet()
-    m.fit(df)
+    m = Prophet(weekly_seasonality=False)
+    model = m.fit(df)
 
     future = m.make_future_dataframe(periods=periods, freq='D')
     forecast = m.predict(future)
