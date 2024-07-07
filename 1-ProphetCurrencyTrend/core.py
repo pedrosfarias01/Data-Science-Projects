@@ -19,7 +19,36 @@ def main_header():
     )
 
     st.title("🪙 Prophet Currency Trend")
-    st.markdown("<p style='font-size: 11px;'> ProphetCurrencyTrend 1.0.0 © 2024 Todos os direitos reservados</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 11px;'> ProphetCurrencyTrend 1.1.0 © 2024</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 13px;'> Created by: Pedro Farias</p>", unsafe_allow_html=True)
+
+    # Add LinkedIn and GitHub buttons
+    st.markdown("""
+        <style>
+        .header-buttons {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .header-buttons a {
+            text-decoration: none;
+            color: white;
+            background-color: #0e76a8;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .header-buttons a.github {
+            background-color: #333;
+        }
+        </style>
+        <div class="header-buttons">
+            <a href="https://www.linkedin.com/in/pedrosfarias/" target="_blank">LinkedIn</a>
+            <a href="https://github.com/pedrosfarias01" target="_blank" class="github">GitHub</a>
+        </div>
+        """, unsafe_allow_html=True)
 
 ########################################### MAIN + MENUS #########################################
 
