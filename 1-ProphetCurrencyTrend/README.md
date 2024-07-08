@@ -3,7 +3,7 @@
 
 ## 🔺Overview
 
-**Prophet Currency Trend Prediction** is a web application designed to predict currency exchange rates using the Prophet forecasting model. This project demonstrates my proficiency with data science frameworks and web application deployment using Streamlit. The app provides an interactive and intuitive interface for users to visualize historical data and predict future currency trends.
+**Prophet Currency Trend Prediction** is a web application designed to predict currency exchange rates using the Prophet forecasting model. The app provides an interactive and intuitive interface for users to visualize historical data and predict future currency trends.
 
 This project aims to:
 - Predict future currency exchange rates using historical data.
