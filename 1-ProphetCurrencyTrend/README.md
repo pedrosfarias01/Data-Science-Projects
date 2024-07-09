@@ -1,9 +1,9 @@
-# 🪙 Prophet Currency Trend Prediction
+# 💲 Prophet Currency Trend Forecast
 [www.prophetcurrencytrend.streamlit.app](https://prophetcurrencytrend.streamlit.app/)
 
 ## 🔺Overview
 
-**Prophet Currency Trend Prediction** is a web application designed to predict currency exchange rates using the Prophet forecasting model. The app provides an interactive and intuitive interface for users to visualize historical data and predict future currency trends.
+**Prophet Currency Trend Forecast** is a web application designed to predict currency exchange rates using the Prophet forecasting model. The app provides an interactive and intuitive interface for users to visualize historical data and predict future currency trends.
 
 This project aims to:
 - Predict future currency exchange rates using historical data.
@@ -40,7 +40,7 @@ This project aims to:
 2. **Select Currencies**:
     - Choose the base and quote currencies from the dropdown menus.
 
-3. **Set Prediction Period**:
+3. **Set Forecast Period**:
     - Adjust the slider to set the number of days for the prediction.
 
 4. **View Results**:
@@ -48,6 +48,6 @@ This project aims to:
 
 ## 🔺Conclusion
 
-The Prophet Currency Trend Prediction app is a valuable tool for making informed decisions about currency exchange, whether for travel, investment, or business purposes. By leveraging advanced time series forecasting with Prophet and offering a user-friendly interface via Streamlit, the app enables users to analyze historical trends and predict future exchange rates, helping them choose the best time to buy or sell currency.
+The Prophet Currency Trend Forecast app is a valuable tool for making informed decisions about currency exchange, whether for travel, investment, or business purposes. By leveraging advanced time series forecasting with Prophet and offering a user-friendly interface via Streamlit, the app enables users to analyze historical trends and predict future exchange rates, helping them choose the best time to buy or sell currency.
 
 ### ❤️ Thank you for visiting my project!
