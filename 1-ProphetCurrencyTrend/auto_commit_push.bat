@@ -5,9 +5,6 @@ cd "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Project
 REM Atualiza o arquivo dummy (last_update.txt) com data e hora
 echo Ultima atualização: %date% %time% > last_update.txt
 
-REM Atualiza o repositório local caso haja mudanças remotas (opcional)
-git pull
-
 REM Adiciona todos os arquivos alterados
 git add .
 
