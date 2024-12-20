@@ -1,6 +1,6 @@
 echo Início do script: %date% %time% > log.txt
 
-cd "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Projects\1-ProphetCurrencyTrend"
+cd /d "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Projects\1-ProphetCurrencyTrend"
 
 git add . || echo "Erro no git add" >> log.txt
 
