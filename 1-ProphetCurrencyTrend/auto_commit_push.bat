@@ -1,4 +1,3 @@
-@echo off
 REM Caminho para o repositório local
 cd "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Projects\1-ProphetCurrencyTrend"
 
