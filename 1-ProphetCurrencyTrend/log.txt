@@ -1,3 +1,1 @@
-Início do script: 20/12/2024  0:47:05,96 
-"Erro ao mudar de diretório" 
-Diretório alterado: 20/12/2024  0:47:05,97 
+Início do script: 20/12/2024  0:48:35,04 

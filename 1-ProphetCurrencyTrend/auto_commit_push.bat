@@ -1,10 +1,6 @@
 echo Início do script: %date% %time% > log.txt
 
-cd /d "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Projects\1-ProphetCurrencyTrend" || echo "Erro ao mudar de diretório" >> log.txt
-
-echo Diretório alterado: %date% %time% >> log.txt
-
-echo Ultima atualização: %date% %time% > last_update.txt || echo "Erro ao atualizar last_update.txt" >> log.txt
+cd "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Projects\1-ProphetCurrencyTrend"
 
 git add . || echo "Erro no git add" >> log.txt
 
