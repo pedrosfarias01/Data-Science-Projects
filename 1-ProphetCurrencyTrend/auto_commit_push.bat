@@ -1,17 +1,17 @@
-REM Caminho para o repositório local
-cd "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Projects\1-ProphetCurrencyTrend"
+echo Início do script: %date% %time% > log.txt
 
-REM Atualiza o arquivo dummy (last_update.txt) com data e hora
-echo Ultima atualização: %date% %time% > last_update.txt
+cd /d "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Projects\1-ProphetCurrencyTrend" || echo "Erro ao mudar de diretório" >> log.txt
 
-REM Adiciona todos os arquivos alterados
-git add .
+echo Diretório alterado: %date% %time% >> log.txt
 
-REM Cria um commit com uma mensagem contendo a data/hora
-git commit -m "Commit automático diário em %date% %time%"
+echo Ultima atualização: %date% %time% > last_update.txt || echo "Erro ao atualizar last_update.txt" >> log.txt
 
-REM Efetua o push para o branch principal
-git push origin main
+git add . || echo "Erro no git add" >> log.txt
 
-REM Mensagem final (opcional)
-echo "Commit e Push realizados com sucesso!"
+git commit -m "Commit automático diário em %date% %time%" || echo "Erro no git commit" >> log.txt
+
+git push origin main || echo "Erro no git push" >> log.txt
+
+echo "Commit e Push realizados com sucesso!" >> log.txt
+echo Fim do script: %date% %time% >> log.txt
+exit
