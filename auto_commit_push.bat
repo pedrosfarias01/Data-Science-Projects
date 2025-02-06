@@ -4,7 +4,7 @@ cd /d "C:\Users\Pedro\OneDrive\DataDom\1. Repositórios GitHub\Data-Science-Proj
 
 git add . || echo "Erro no git add" >> log.txt
 
-git commit -m "Commit automático diário em %date% %time%" || echo "Erro no git commit" >> log.txt
+git commit -m "Commit automatico diario em %date% %time%" || echo "Erro no git commit" >> log.txt
 
 git push origin main || echo "Erro no git push" >> log.txt
 

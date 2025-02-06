@@ -1,8 +1,10 @@
 ---
 title: "CS5801 Coursework Supporting analysis Template Proforma"
-author: "2433795"
+author: '2433795'
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
+  html_document:
+    df_print: paged
   pdf_document: default
 version: 1
 ---
