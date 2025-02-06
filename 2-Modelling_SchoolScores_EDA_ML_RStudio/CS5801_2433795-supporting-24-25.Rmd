@@ -1,0 +1,760 @@
+---
+title: "CS5801 Coursework Supporting analysis Template Proforma"
+author: "2433795"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+version: 1
+---
+
+# 0. Instructions 
+
+*This markdown is to be submitted in support of the one that will be used for marking. This may be used to confirm that the results presented in the submission are justified and that the claims made are backed up*
+
+*1. Keep the section headings.*  
+
+*2. Add as many chunks of R code as required and make sure there are some explanations*  
+ 
+*3. Write your report using RMarkdown.  For guidance see a [helpful blog](https://www.dataquest.io/blog/r-markdown-guide-cheatsheet/#tve-jump-17333da0719) or use the R Markdown cheatsheet which can be accessed from within RStudio by selecting `Help > Cheatsheets > R Markdown Cheat Sheet`.*  
+
+*4. This markdown document needs to run end to end without errors*
+
+
+```{r}
+# Add code here to load all the required libraries with `library()`.  
+# Do not include any `install.package()` for any required packages in this rmd file.
+library(Hmisc)
+library(ggplot2)
+```
+
+
+# 1. Organise and clean the data
+
+## 1.1 Subset the data into the specific dataset allocated
+ 
+*A description of the data set provided, its contents and which subset you should select is documented in the assessment brief at CS5801-Assessment Brief Template 2024-25.pdf*
+
+*Use R code to correctly select the subset of data allocated.*  
+
+```{r}
+# Only change the value for SID 
+# Assign your student id into the variable SID, for example:
+SID <- 2433795                 # This is an example, replace 2101234 with your actual ID
+SIDoffset <- (SID %% 50) + 1    # Your SID mod 50 + 1
+
+load("student_data.Rda")
+# Now subset the student data set
+# Pick every 50th observation starting from your offset
+# Put into your data frame named mydf (you can rename it)
+mydf <- student_data_analysis[seq(from=SIDoffset,to=nrow(student_data_analysis),by=50),]
+```
+
+```{r}
+mydf
+```
+
+
+## 1.2 Data quality plan
+ 
+>  The first for my quality plan is to understand the dataset that I'll be working on. For that, I will gather the information from the metadata to understand each column and also the range of values that are expected. After that I can start checking possible errors in the dataset, checking the following aspects:
+
+1. Null values
+2. Duplicated rows
+3. Duplicated values in columns supposed to have unique values
+4. Data-types
+5. If values meet the expected range (min - max)
+6. Outliers
+7. Typos (in categorical columns)
+8. Any other especific rule
+
+> To make my work easier, I'll use the {validate} package, defining a rule for each variable and automatically making the assessment of quality for each column. (this package was used in the Week 5 - Modern Data Lab)
+
+> After identifying possible problems I'll analyze how to better address each one of the issues found in order to assure the quality of our dataset. The main cleaning options are:
+
+- Ignore: when the issue has no significant impact on the dataset quality and cannot be addressed effectively using other data cleaning methods.
+
+- Correct: editing values, replacing or deleting.
+
+- Impute: replace issues with other reasonable values through mean, median, mode, regression methods and other more complex techniques.
+
+ 
+*Use this section to add any code and explanations related to your data quality plan and execution*
+
+## 1.3 Data quality analysis findings
+
+### 1.3.1.1 Summary & {Validate Package}
+
+
+```{r}
+mydf
+
+summary(mydf)
+``` 
+
+
+> From the summary above is possible to get a simple overview of the columns of the dataset, and its values. Its also possible to notice a few seemingly incorrect values which will be further investigated. The cleaning strategy for each column will be explained in the next section (1.4)
+
+
+1. student_id:
+
+> In spite of some values with a low number of digits, after taking a look at the whole dataset, it appears to be normal to have a variation in number of digits.
+
+2. entry_exam_mark: 
+
+> For this column values should vary from 0 to 100, nevertheless the min value is -73, which could be an error and the method to fix it will depend on the volume of negative values present in this column.
+
+3. sat_score: 
+
+> First of all, we need to understand what sat_score means and the values we could expect to see in this column. 
+
+> Based on the metadata, SAT Scores varies from 0 to 1600.
+
+> No errors detected.
+
+4. percentage_absence
+
+> As a percentage, values should vary from 0 to 100 but there is a max value of 121 on the column.
+
+5. free_school_meals
+
+> As a categoric column, the best way to check is from a table:
+
+```{r}
+table(mydf$free_school_meals)
+```
+> Apparently there are no errors.
+
+6. grade_point_average
+
+> Also known as GPA, the grading point average should varies from 0 to 4, so no errors or outliers detected from looking at the summary.
+
+7. completed.extended.project
+
+```{r}
+table(mydf$completed.extended.project)
+```
+> Apparently there are no errors in this column.
+
+8. month_of_birth
+
+```{r}
+table(mydf$month_of_birth)
+```
+> Apparently there are no errors in this column.
+
+9. Commute Method
+
+```{r}
+table(mydf$commute_method)
+```
+> Looking at this column there are a few typos which could interfere my future analysis, as, for example, 'car' and 'Car' are considered two separate values.
+
+#### 1.3.1.2 Validate Package
+
+```{r}
+# install.package("validate")
+library(validate)
+```
+
+```{r}
+mydf.rules <- validator(okEntryMark = entry_exam_mark >= 0 & entry_exam_mark <= 100,
+                             okSAT = sat_score >= 0 & sat_score <= 1600,
+                             okPercAbs = percentage_absence >= 0 & percentage_absence <= 100,
+                             okFreeMeals = is.element(free_school_meals,c("Yes","No")),
+                             okGPA = grade_point_average >= 0,
+                             okExProj = is.element(completed.extended.project,c("Yes","No")),
+                             okCommute = is.element(commute_method,c("Bicycle", "Bus", "Car", "Walking", "Other")))
+```
+
+```{r}
+# Getting the summary of the quality check
+qual.check <- confront(mydf,mydf.rules)
+summary(qual.check)
+
+# Plot the result of the rules we set using validate package
+plot(qual.check, xlab = "")
+```
+ 
+### 1.3.2 Checking Duplicates
+
+```{r}
+# Check for duplicate rows in mydf
+duplicate_rows <- mydf[duplicated(mydf), ]
+
+duplicate_rows
+```
+
+> No duplicate rows found
+
+```{r}
+# Check duplicate values in unique valued column
+duplicate_ids <- mydf$student_id[duplicated(mydf$student_id)]
+
+duplicate_ids
+```
+> No duplicate student_id values found
+
+### 1.3.3 Checking Missing Values
+
+```{r}
+# Check for missing values in each column of mydf
+missing_values <- colSums(is.na(mydf))
+
+missing_values
+```
+
+>  No missing values found
+
+### 1.3.4 Checking Data Types
+
+```{r}
+str(mydf)
+```
+> Numerical and Integer columns have the correct data-type.
+> Categorical column need to be converted into factors.
+
+### 1.3.5 Checking the arrangement of values using boxplots
+
+```{r}
+
+# Boxplot for 'entry_exam_mark'
+boxplot(mydf$entry_exam_mark, main = "Entry Exam Mark", ylab = "Marks")
+
+# Boxplot for 'sat_score'
+boxplot(mydf$sat_score, main = "SAT Score", ylab = "Score")
+
+# Boxplot for 'percentage_absence'
+boxplot(mydf$percentage_absence, main = "Percentage Absence", ylab = "Percentage")
+
+# Boxplot for 'grade_point_average'
+boxplot(mydf$grade_point_average, main = "Grade Point Average", ylab = "GPA")
+```
+
+*Use this section to include any relevant code and explanations related to your findings*
+
+## 1.4 Data cleaning
+
+### 1.4.1 - entry_mark_exam
+
+> For this column, negative marks are not expected, however, they are present.
+
+> It's also important to check the volume of negative values present.
+
+```{r}
+negative_marks <- mydf[mydf$entry_exam_mark < 0, ]
+negative_marks
+```
+
+> There are 4 rows with negative values, so we can use the strategy to impute values to replace the negative ones because if we set the minimum to 0, changing the negative values to 0, would bring a considerable noise to our dataset, as 0 can be considered an outlier.
+
+> Applying imputation in the 4 rows seems to be the best option and will not impact our dataset significantly.
+
+> Cleaning Strategy: Imputation (median)
+
+```{r}
+# Create a new df (cleaned)
+mydf_clean <- mydf
+
+# Replace negative values in 'entry_exam_mark' with the median of the column (just values >= 0)
+mydf_clean$entry_exam_mark[mydf_clean$entry_exam_mark < 0] <- median(mydf_clean$entry_exam_mark[mydf_clean$entry_exam_mark >= 0])
+
+
+```
+
+
+### 1.4.2 percentage_absence
+
+> For this column, as it is a percentage, values should vary between 0 to 100, altought there are values above the maximum expected
+
+```{r}
+percentage_max <- mydf[mydf$percentage_absence > 100, ]
+percentage_max
+```
+> 2 rows affected. Simillarly to the previous issues, try to correct the value setting the maximum to 100 would bring undesirable noise to our dataset, as 100 would be an outlier so we can simply use imputation by the median.
+
+> Cleaning Strategy: Imputation (median)
+
+```{r}
+# Replace high values in 'entry_exam_mark' with the median of the column (just values <= 100)
+mydf_clean$percentage_absence[mydf_clean$percentage_absence > 100] <- median(mydf_clean$percentage_absence[mydf_clean$percentage_absence <= 100])
+```
+
+### 1.4.3 commute_method - typos
+
+```{r}
+table(mydf$commute_method)
+```
+> For this column, there are a few errors in the spelling of the commute methods.
+
+- "Bicicle" should be "Bicycle"
+- "car" should be "Car"
+
+> Cleaning Strategy: Correcting typos & changing data-type to factor
+
+```{r}
+# Editing misspelling strings
+mydf_clean$commute_method[mydf_clean$commute_method == "Bicicle"] <- "Bicycle"
+mydf_clean$commute_method[mydf_clean$commute_method == "car"] <- "Car"
+
+# Changing the column data type to factor
+mydf_clean$commute_method <- as.factor(mydf_clean$commute_method)
+```
+
+```{r}
+table(mydf_clean$commute_method)
+```
+
+
+### Extra - converting to factor
+
+```{r}
+# Changing the column data type to factor - column month_of_birth
+mydf_clean$month_of_birth <- as.factor(mydf_clean$month_of_birth)
+
+# Changing the column data type to factor - column completed.extended.project
+mydf_clean$completed.extended.project <- as.factor(mydf_clean$completed.extended.project)
+
+# Changing the column data type to factor - free_school_meals
+mydf_clean$free_school_meals <- as.factor(mydf_clean$free_school_meals)
+```
+
+
+### 1.4.4 Checking if all issues have been addressed
+
+```{r}
+summary(mydf_clean)
+
+```
+
+```{r}
+str(mydf_clean)
+```
+
+
+```{r}
+table(mydf_clean$commute_method)
+```
+
+  *Use this section to include any relevant code and explanations related to how you addressed the issues found*
+
+# 2. Exploratory Data Analysis (EDA)
+
+## 2.1 Overview of the cleaned dataset
+
+### 2.1.1 Summary
+
+```{r}
+summary(mydf_clean)
+```
+
+### 2.1.2 Distribution
+
+```{r}
+# Histogram for 'entry_exam_mark'
+hist(mydf_clean$entry_exam_mark, main = "Distribution of Entry Exam Mark", 
+     xlab = "Marks", col = "lightblue", border = "black", breaks = 10)
+
+# Histogram for 'sat_score'
+hist(mydf_clean$sat_score, main = "Distribution of SAT Score", 
+     xlab = "Score", col = "lightgreen", border = "black", breaks = 10)
+
+# Histogram for 'grade_point_average'
+hist(mydf_clean$grade_point_average, main = "Distribution of GPA", 
+     xlab = "GPA", col = "lightcoral", border = "black", breaks = 20)
+```
+> All marks/score columns follow a normal distribution
+
+
+
+## 2.2 Correlation between numerical variables
+
+```{r}
+selected_columns <- mydf_clean[, c("entry_exam_mark", "sat_score", "percentage_absence", "grade_point_average")]
+correlation_matrix <- cor(selected_columns)
+correlation_matrix
+```
+```{r}
+str(mydf_clean)
+```
+## 2.3 Relationships
+
+### 2.3.1 GPA x Completed Extended Project
+
+```{r}
+# Create the boxplot
+boxplot(grade_point_average ~ completed.extended.project, 
+        data = mydf_clean, 
+        main = "Boxplot of GPA by Extended Project Completion",
+        xlab = "Completed Extended Project",
+        ylab = "GPA",
+        col = c("lightblue", "lightgreen"))
+```
+
+```{r}
+t_test_result <- t.test(grade_point_average ~ completed.extended.project, data = mydf_clean)
+
+t_test_result
+```
+
+> Based on the t-test, we can reject the null hypothesis and confirm that there is a significant difference between the means of the 'grade_point_average' in the two groups. This implies that completing the extended project is associated with a measurable difference in GPA score.
+
+### 2.3.2 GPA x SAT
+
+```{r}
+# Ploting the scatter plot between the features
+plot(mydf_clean$grade_point_average, mydf_clean$sat_score,
+     main = "Correlation: GPA x SAT Score",
+     xlab = "GPA",
+     ylab = "SAT Score",
+     pch = 20, col = "brown")
+```
+
+
+```{r}
+cor.test(mydf$grade_point_average, mydf$sat_score)
+```
+> Based on the correlation test, we can reject the null hypothesis and confirm that there is a statistically significant correlation between grade_point_average and sat_score. This implies that the GPA performance is associated with SAT scores, suggesting a measurable relationship between these two variables.
+
+### 2.3.3 Entry Exam Mark x GPA
+
+```{r}
+# Ploting the scatter plot between the features
+plot(mydf_clean$entry_exam_mark, mydf_clean$grade_point_average,
+     main = "Correlation: Entry Exam Mark x GPA",
+     xlab = "Entry Exam Mark",
+     ylab = "GPA",
+     pch = 20, col = "red")
+```
+
+
+```{r}
+cor.test(mydf$entry_exam_mark, mydf$grade_point_average)
+```
+
+> Based on the correlation test, we can reject the null hypothesis and confirm that there is a statistically significant correlation between entry_exam_mark and grade_point_average. This implies that entry exam performance is associated with GPA scores.
+
+### 2.3.4 Free School Meals x GPA
+
+```{r}
+# Create the boxplot
+boxplot(grade_point_average ~ free_school_meals, 
+        data = mydf_clean, 
+        main = "Boxplot of GPA by Extended Project Completion",
+        xlab = "Free School Meals",
+        ylab = "GPA",
+        col = c("lightblue", "lightyellow"))
+```
+
+```{r}
+t_test_result <- t.test(grade_point_average ~ free_school_meals, data = mydf_clean)
+
+t_test_result
+```
+
+> Based on the t-test, we can reject the null hypothesis and confirm that there is a significant difference between the means of the 'grade_point_average' in the two groups. Receive a free meal is associated with GPA performance, this could indicate that socioeconomic factors can be associated with academic performance.
+
+### 2.3.4 Commute Methods x GPA
+
+```{r}
+table(mydf_clean$commute_method)
+```
+
+
+```{r}
+# Create the boxplot
+boxplot(grade_point_average ~ commute_method, 
+        data = mydf_clean, 
+        main = "Boxplot of GPA by Commute Methods",
+        xlab = "Commute Methods",
+        ylab = "GPA",
+        col = c("lightgreen", "lightyellow", "lightyellow", "grey", "lightgreen"))
+```
+Looking at the boxplot we can notice that Bicycle and Walking groups have the highest average of GPA score, althought it's hard to take a conclusion because there are too many categories, the sample volume in each one is not enough and the difference in GPA is also not conclusive. The "Other" category should be well explained and could be investigated, as it showed the lowest GPA scores. Curiously the methods highlighted in green related to physical activities have the highest GPA ('Bicycle' and 'Walking').
+
+
+### 2.3.5 Percentage Absence x GPA
+
+```{r}
+# Ploting the scatter plot between the features
+plot(mydf_clean$percentage_absence, mydf_clean$grade_point_average,
+     main = "Correlation: Absence (%) x GPA",
+     xlab = "Absence (%)",
+     ylab = "GPA",
+     pch = 20, col = "blue")
+```
+
+```{r}
+cor.test(mydf$percentage_absence, mydf$grade_point_average)
+```
+
+> Based on the correlation test, we can reject the null hypothesis and confirm that there is a statistically significant correlation between percentage_absence and grade_point_average. This implies that absence rates are associated with GPA scores.
+
+### 2.3.6 Month of Birth x GPA
+
+```{r}
+# Create the boxplot
+boxplot(grade_point_average ~ month_of_birth, 
+        data = mydf_clean, 
+        main = "Boxplot of GPA by Month of Birth",
+        xlab = "Month of Birth",
+        ylab = "GPA",
+        col = c("lightgreen"))
+```
+From the boxplot we conclude that there's no apparent relation between the month of birth with the GPA, as the median is almost the same - around 2.5 - in all groups.
+
+For this reason, month of birth won't be used in the modelling step.
+
+
+## 2.4 Analyzing possible transformations
+
+```{r}
+# Ploting the scatter plot between the features
+plot(mydf_clean$entry_exam_mark, mydf_clean$grade_point_average,
+     main = "EEM x GPA",
+     xlab = "EEM",
+     ylab = "GPA",
+     pch = 20, col = "red")
+```
+
+```{r}
+# Ploting the scatter plot between the features
+plot(mydf_clean$sat_score, mydf_clean$grade_point_average,
+     main = "SAT x GPA",
+     xlab = "SAT",
+     ylab = "GPA",
+     pch = 20, col = "red")
+```
+```{r}
+# Ploting the scatter plot between the features
+plot(mydf_clean$percentage_absence, mydf_clean$grade_point_average,
+     main = "SAT x GPA",
+     xlab = "SAT",
+     ylab = "GPA",
+     pch = 20, col = "red")
+```
+
+```{r}
+# Ploting the scatter plot between the features
+plot(mydf_clean$percentage_absence^(1/2), mydf_clean$grade_point_average,
+     main = "SAT x GPA",
+     xlab = "SAT",
+     ylab = "GPA",
+     pch = 20, col = "red")
+```
+
+## 2.5 Relationship with Completed Extended Project
+
+### 2.5.1 GPA x Completed Extended Project
+
+```{r}
+ggplot(mydf_clean, aes(x=completed.extended.project, y=grade_point_average)) + geom_boxplot() + ggtitle("Boxplot of GPA vs Completed Extended Project") + theme_classic()
+
+```
+### 2.5.2 SAT Score x Completed Extended Project
+
+```{r}
+ggplot(mydf_clean, aes(x=completed.extended.project, y=sat_score)) + geom_boxplot() + ggtitle("Boxplot of SAT Score vs Completed Extended Project") + theme_classic()
+
+```
+### 2.5.3 Entry Exam Mark x Completed Extended Project
+
+```{r}
+ggplot(mydf_clean, aes(x=completed.extended.project, y=entry_exam_mark)) + geom_boxplot() + ggtitle("Boxplot of Entry Exam Mark vs Completed Extended Project") + theme_classic()
+
+```
+### 2.5.4 Commute Method x Completed Extended Project
+
+```{r}
+mosaicplot(mydf_clean$commute_method~mydf_clean$completed.extended.project, main = "Mosaic Plot of Completition of Extended Project by Commute Method", ylab="Commute Method", xlab="Completed Extended Project")
+```
+The difference in proportion between commute methods is very interesting and it might be a good feature for modelling the completition of extended project
+
+### 2.5.5 Free School Meals x Completed Extended Project
+
+```{r}
+mosaicplot(mydf_clean$free_school_meals~mydf_clean$completed.extended.project, main = "Mosaic Plot of Completition of Extended Project by Free School Meals", ylab="Free School Meals", xlab="Completed Extended Project")
+```
+### 2.5.6 Percentage Absence x Completed Extended Project
+
+```{r}
+ggplot(mydf_clean, aes(x=completed.extended.project, y=percentage_absence)) + geom_boxplot() + ggtitle("Boxplot of Percentage Absence vs Completed Extended Project") + theme_classic()
+```
+
+### 2.5.7 Month of Birth x Completed Extended Project
+
+```{r}
+mosaicplot(mydf_clean$month_of_birth~mydf_clean$completed.extended.project, main = "Mosaic Plot of Completition of Extended Project by Month of Birth", ylab="Month of Birth", xlab="Completed Extended Project")
+```
+
+*Use this section for EDA related additional code*  
+
+
+# 3. Modelling
+
+## 3.1 Maximal Model
+
+### 3.1.1 Maximal Model - with interactions
+
+```{r}
+# Fit the linear regression model
+m1.int <- lm(grade_point_average ~ sat_score*percentage_absence*completed.extended.project, data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m1.int)
+plot(m1.int)
+```
+### 3.1.2 Maximal Model - without interactions
+
+```{r}
+# Fit the linear regression model
+m1 <- lm(grade_point_average ~ entry_exam_mark + sat_score + percentage_absence + free_school_meals + completed.extended.project, data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m1)
+plot(m1)
+```
+
+
+## 3.2 M2
+
+```{r}
+# Fit the linear regression model
+m2 <- lm(grade_point_average ~ sat_score + percentage_absence + free_school_meals + completed.extended.project, data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m2)
+plot(m2)
+```
+
+
+## 3.3 M3
+
+```{r}
+# Fit the linear regression model
+m3 <- lm(grade_point_average ~ sat_score + percentage_absence + completed.extended.project, data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m3)
+plot(m3)
+```
+
+
+## 3.4 M4
+
+```{r}
+# Fit the linear regression model
+m4 <- lm(grade_point_average ~ sat_score + percentage_absence, data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m4)
+plot(m4)
+```
+
+### 3.5 M5
+
+```{r}
+# Fit the linear regression model
+m5 <- lm(grade_point_average ~ sat_score, data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m5)
+plot(m5)
+```
+
+### 3.6 - M6 - Tried transformation in percentage_absence
+
+```{r}
+# Fit the linear regression model
+m6 <- lm(grade_point_average ~ sat_score + completed.extended.project + I(percentage_absence^(1/2)), data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m6)
+plot(m6)
+```
+
+### 3.6.2 - Maximal2 with transformation
+
+```{r}
+# Fit the linear regression model
+m6.2 <- lm(grade_point_average ~ entry_exam_mark + sat_score + free_school_meals + completed.extended.project + I(percentage_absence^(1/2)), data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m6.2)
+plot(m6.2)
+```
+### 3.6.3 - M6.3
+
+```{r}
+# Fit the linear regression model
+m6.3 <- lm(grade_point_average ~ sat_score + completed.extended.project + I(percentage_absence^(1/2)), data = mydf_clean)
+
+# Summary of the model to evaluate its performance
+summary(m6.3)
+plot(m6.3)
+```
+
+
+### 3.7 - EM (Extra model - Step function)
+
+```{r}
+step(m1)
+```
+### 3.8 Final Model (M6.3)
+
+```{r}
+m6.3
+```
+
+
+*Include any code and explanations that illustrate and support the steps you took in converging to the model you propose in the submission*
+
+
+# 4. Modelling another dependent variable
+
+## 4.1 LR1 - Maximal Model no interactions
+
+```{r}
+lr1<-glm(mydf_clean$completed.extended.project ~ mydf_clean$entry_exam_mark + mydf_clean$sat_score + mydf_clean$percentage_absence + mydf_clean$free_school_meals + mydf_clean$grade_point_average + mydf_clean$commute_method, family = "binomial")
+
+summary(lr1)
+```
+## 4.2 LR 2
+
+```{r}
+lr2<-glm(mydf_clean$completed.extended.project ~ mydf_clean$sat_score + mydf_clean$percentage_absence + mydf_clean$grade_point_average + mydf_clean$commute_method, family = "binomial")
+
+summary(lr2)
+```
+## 4.3 LR3 - Maximal Model with interactions
+
+```{r}
+lr3<-glm(mydf_clean$completed.extended.project ~ mydf_clean$percentage_absence*mydf_clean$grade_point_average*mydf_clean$commute_method, family = "binomial")
+
+summary(lr3)
+```
+
+```{r}
+step(lr3)
+```
+## 4.4 LR4 - Optimized model
+
+```{r}
+lr4 <- glm(mydf_clean$completed.extended.project ~ mydf_clean$grade_point_average + mydf_clean$commute_method, family = "binomial")
+
+summary(lr4)
+```
+
+
+```{r}
+#exponentiate the coefficients
+exp(coef(lr4))
+```
+
+
+*Include any code and explanations that illustrate and support the steps you took in converging to the model you propose in the submission*
+
+# References
+
+Grolemund, Garrett, and Hadley Wickham. 2018. R for Data Science
+
+*Add any references here including references to use of GenAI. NB You can either do this manually or automatically with a `.bib` file (which then must be submitted along with your `.Rmd` file).  See the RMarkdown [documentation](https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html) for guidance.*    
