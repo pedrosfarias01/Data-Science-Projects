@@ -161,14 +161,13 @@ def prophet_predict_graph(df, periods):
         return fig, forecast
 
 def currency_selection():
-    # Select currency pairs
     currencies = ['GBP', 'USD', 'EUR', 'JPY', 'BRL', 'CAD', 'AUD']
     currency1 = st.selectbox("Select Currency 1:", currencies, index=0)
     currency2 = st.selectbox("Select Currency 2:", currencies, index=4)
 
-    # Ensure that the selected currencies are not the same
     if currency1 == currency2:
         st.error("Please select two different currencies.")
+        st.stop()  
     else:
         currency_pair = f"{currency1}{currency2}=X"
 
