@@ -53,19 +53,28 @@ def main_header():
 ########################################### MAIN + MENUS #########################################
 
 def main():
-
     st.title("Time Series Prediction - Currency Exchange Rates")
 
     currency_pair = currency_selection()
 
     # Load and process data
     df = load_and_process_data(currency_pair, years_period=10)
+    
+    # Check if data was loaded successfully
+    if df.empty:
+        st.warning("Unable to load data. Please try again or select different currencies.")
+        st.stop()
 
     # Get prediction periods
     periods = st.slider("Select prediction periods (days):", min_value=30, max_value=365, value=90)
     
     # Generate predictions
     plot1, forecast = prophet_predict_graph(df, periods)
+    
+    # Check if predictions were generated successfully
+    if plot1 is None or forecast.empty:
+        st.error("Unable to generate predictions. Please try again.")
+        st.stop()
 
     # Display key predictions first
     st.subheader("Key Predictions")
@@ -124,17 +133,28 @@ def main():
 ########################################### FUNCTIONS #########################################
 
 def load_and_process_data(pair, years_period=10):
-
-    data = yf.download(tickers=pair, period='max', interval='1d')
+    # Download data
+    data = yf.download(pair, period='max', interval='1d')
+    
+    if data.empty:
+        return pd.DataFrame()
+    
     current_year = pd.Timestamp.now().year
-    df = data[data.index.astype('datetime64[ns]').year >= (current_year - years_period)]
+    df = data[data.index.year >= (current_year - years_period)]
+    
+    if df.empty:
+        return pd.DataFrame()
+    
     df = df.reset_index()
     df = df[['Date', 'Close']]
     df.columns = ['ds', 'y']
-
+    
     return df
 
 def prophet_predict_graph(df, periods):
+    if df.empty or len(df) < 2:
+        return None, pd.DataFrame()
+    
     with st.spinner('Fitting time series model and calculating forecasts...'):
         progress_bar = st.progress(0)
         
@@ -153,7 +173,7 @@ def prophet_predict_graph(df, periods):
         
         # Creating the visualization
         progress_bar.progress(100)
-        fig = plot_plotly(m, forecast)  # Use plotly for interactive plotting
+        fig = plot_plotly(m, forecast)
         
         # Clear the progress bar
         progress_bar.empty()
