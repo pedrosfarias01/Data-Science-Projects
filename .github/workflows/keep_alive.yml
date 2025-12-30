@@ -2,7 +2,6 @@ name: Keep Streamlit Alive
 
 on:
   schedule:
-    # Every 10 minutes (UTC)
     - cron: "*/10 * * * *"
   workflow_dispatch:
 
@@ -14,5 +13,5 @@ jobs:
         run: |
           set -e
           echo "Pinging app..."
-          curl -sS -L --max-time 20 "https://prophetcurrencytrend.streamlit.app/" > /dev/null
+          curl -sS --max-time 20 -o /dev/null -w "%{http_code}\n" "https://prophetcurrencytrend.streamlit.app/"
           echo "Done."
