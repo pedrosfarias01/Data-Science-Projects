@@ -1,17 +1,1 @@
-name: Keep Streamlit Alive
 
-on:
-  schedule:
-    - cron: "*/10 * * * *"
-  workflow_dispatch:
-
-jobs:
-  ping:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ping Streamlit app
-        run: |
-          set -e
-          echo "Pinging app..."
-          curl -sS --max-time 20 -o /dev/null -w "%{http_code}\n" "https://prophetcurrencytrend.streamlit.app/"
-          echo "Done."
